@@ -35,3 +35,34 @@ export type CreateProxySchema = z.infer<typeof createProxySchema>
 export type UpdateProxySchema = z.infer<typeof updateProxySchema>
 export type DeleteProxySchema = z.infer<typeof deleteProxySchema>
 export type GetProxySchema = z.infer<typeof getProxySchema>
+
+export const clashConfigSchema = z.object({
+  port: z.number().int().min(1).max(65535),
+  'socksport': z.number().int().min(1).max(65535),
+  'allow-lan': z.boolean(),
+  mode: z.string(),
+  'log-level': z.string(),
+  'external-controller': z.string(),
+  dns: z.object({
+    enable: z.boolean(),
+    nameserver: z.array(z.string().ip()),
+    fallback: z.array(z.string())
+  }),
+  proxies: z.array(z.object({
+    name: z.string(),
+    type: z.string(),
+    server: z.string(),
+    port: z.number(),
+    cipher: z.string().optional(),
+    password: z.string().optional(),
+    udp: z.boolean().optional()
+  })).optional(),
+  'proxy-groups': z.array(z.object({
+    name: z.string(),
+    type: z.enum(['select', 'url-test', 'fallback', 'load-balance']),
+    proxies: z.array(z.string())
+  })).optional(),
+  rules: z.array(z.string()).optional()
+})
+
+export type ClashConfigSchema = z.infer<typeof clashConfigSchema>
