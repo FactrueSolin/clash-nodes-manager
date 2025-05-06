@@ -1,13 +1,11 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaD1 } from '@prisma/adapter-d1'
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema } from '@/app/api/[[...route]]/types';
 let prisma: PrismaClient;
 
 async function initPrisma() {
-  const cfenv = (await getCloudflareContext({async:true})).env;
-  const adapter = new PrismaD1(cfenv.DB);
-  prisma = new PrismaClient({ adapter });
+  
+  prisma = new PrismaClient();
 }
 let initialized = false;
 let initError: Error | null = null;
