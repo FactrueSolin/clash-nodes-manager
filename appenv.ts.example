@@ -1,0 +1,3 @@
+export const appenv={
+    key:"yout-key",
+}
