@@ -2,19 +2,49 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema } from '../api/[[...route]]/types';
-const cfenv=getCloudflareContext().env  //避免使用env这个变量名，会和环境变量的env产生冲突
+let prisma: PrismaClient;
 
-  const adapter = new PrismaD1(cfenv.DB)
-    const prisma = new PrismaClient({ adapter })
+async function initPrisma() {
+  const cfenv = getCloudflareContext().env;
+  const adapter = new PrismaD1(cfenv.DB);
+  prisma = new PrismaClient({ adapter });
+}
+let initialized = false;
+let initError: Error | null = null;
 
-export const db={
-  createProxy,
-  updateProxy,
-  deleteProxy,
-  getProxys,
-
+export const db = {
+  async ensureInitialized() {
+    if (initialized) return;
+    if (initError) throw initError;
+    
+    try {
+      await initPrisma();
+      initialized = true;
+    } catch (err) {
+      initError = err as Error;
+      throw initError;
+    }
+  },
+  createProxy: async (data: CreateProxySchema) => {
+    await db.ensureInitialized();
+    return createProxy(data);
+  },
+  updateProxy: async (data: UpdateProxySchema) => {
+    await db.ensureInitialized();
+    return updateProxy(data);
+  },
+  deleteProxy: async (data: DeleteProxySchema) => {
+    await db.ensureInitialized();
+    return deleteProxy(data);
+  },
+  getProxys: async (data: GetProxySchema) => {
+    await db.ensureInitialized();
+    return getProxys(data);
+  },
+  initPrisma
 }
 async function createProxy(data:CreateProxySchema){
+  
   const proxy = await prisma.proxy.create({
     data: {
       name: data.name,
