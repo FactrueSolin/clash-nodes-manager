@@ -1,12 +1,6 @@
-import { ClashConfigSchema } from '../api/[[...route]]/types';
+import { ClashConfigSchema } from '@/app/api/[[...route]]/types';
 import { Proxy } from '@prisma/client';
-import { exampleConfig } from './example-config';
-
-
-
-
-
-
+import { exampleConfig } from '@/app/server/example-config';
 
 export function generateFullConfig(data:Proxy[]): ClashConfigSchema {
   const baseConfig = exampleConfig;

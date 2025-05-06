@@ -1,4 +1,4 @@
-import { ClashConfigSchema } from "../api/[[...route]]/types";
+import { ClashConfigSchema } from "@/app/api/[[...route]]/types";
 
 export const exampleConfig: ClashConfigSchema = {
   port: 7890,
