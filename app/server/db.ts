@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { CreateProxySchema,UpdateProxySchema } from '../api/[[...route]]/types';
+import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema } from '../api/[[...route]]/types';
 const cfenv=getCloudflareContext().env  //避免使用env这个变量名，会和环境变量的env产生冲突
 
   const adapter = new PrismaD1(cfenv.DB)
@@ -9,7 +9,9 @@ const cfenv=getCloudflareContext().env  //避免使用env这个变量名，会�
 
 export const db={
   createProxy,
-  updateProxy
+  updateProxy,
+  deleteProxy,
+  getProxys,
 
 }
 async function createProxy(data:CreateProxySchema){
@@ -45,4 +47,23 @@ async function updateProxy(data:UpdateProxySchema) {
     }
   })
   return proxy
+}
+async function deleteProxy(data:DeleteProxySchema) {
+  const oldProxy = await prisma.proxy.findUnique({
+    where: { id: data.uuid }
+  })
+  if (!oldProxy) {
+    return false
+  }
+  const proxy = await prisma.proxy.delete({
+    where: { id: data.uuid }
+  })
+  return proxy
+}
+
+async function getProxys(data:GetProxySchema) {
+  const proxys = await prisma.proxy.findMany({
+    where: { id: data.uuid }
+  })
+  return proxys
 }

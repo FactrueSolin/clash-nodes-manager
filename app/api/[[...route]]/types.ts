@@ -21,5 +21,17 @@ export const updateProxySchema = z.object({
   password: z.coerce.string().min(1, { message: '连接密码必须提供' }).optional()
 })
 
+export const deleteProxySchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+  uuid: z.coerce.string().min(1, { message: '节点ID必须提供' })
+})
+
+export const getProxySchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+  uuid: z.coerce.string().min(1, { message: '节点ID不正确' }).optional()
+})
+
 export type CreateProxySchema = z.infer<typeof createProxySchema>
 export type UpdateProxySchema = z.infer<typeof updateProxySchema>
+export type DeleteProxySchema = z.infer<typeof deleteProxySchema>
+export type GetProxySchema = z.infer<typeof getProxySchema>
