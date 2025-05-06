@@ -1,33 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Clash 配置生成器
 
-## Getting Started
+一个基于Next.js的Clash配置文件生成工具，支持快速生成订阅链接和自定义规则。
 
-First, run the development server:
+## 功能特性
 
+- 一键生成Clash订阅链接
+- 支持自定义规则和代理组
+- 可视化配置界面
+- 支持多种订阅格式导出
+
+## 技术栈
+
+- 前端: Next.js 14, TypeScript
+- 样式: Tailwind CSS
+- 状态管理: Zustand
+- 表单处理: React Hook Form
+
+## 快速开始
+
+1. 安装依赖:
+```bash
+npm install
+```
+2. 启动开发服务器:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+3. 访问 [http://localhost:3000](http://localhost:3000)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API文档
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+项目提供以下API端点:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `GET /api/subscribe` - 获取订阅链接
+- `POST /api/config` - 生成自定义配置
+- `GET /api/rules` - 获取规则模板
 
-## Learn More
+## 贡献指南
 
-To learn more about Next.js, take a look at the following resources:
+欢迎提交Pull Request或Issue。开发前请先阅读:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Next.js文档](https://nextjs.org/docs)
+- [Clash配置规范](https://github.com/Dreamacro/clash/wiki/configuration)
 
 ## Deploy on Vercel
 

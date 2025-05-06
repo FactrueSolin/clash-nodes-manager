@@ -4,6 +4,7 @@ import { createProxySchema,updateProxySchema,deleteProxySchema,getProxySchema } 
 import { appenv } from '@/appenv'
 import { db } from '@/app/server/db'
 import { generateFullConfig } from '@/app/server/config'
+import yaml from 'js-yaml'
 const app = new Hono().basePath('/api')
 
 
@@ -123,8 +124,8 @@ app.get('/config', async (c) => {
   }
   const res = await db.getProxys({key})
   const config = generateFullConfig(res)
-  const yaml = require('js-yaml').dump(config)
-  return new Response(yaml, {
+  const yamlData = yaml.dump(config)
+  return new Response(yamlData, {
     headers: {
       'Content-Type': 'text/yaml'
     }
