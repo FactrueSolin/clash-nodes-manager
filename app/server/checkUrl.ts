@@ -1,7 +1,6 @@
 import yaml from 'js-yaml';
 import axios from 'axios';
 import { z } from 'zod';
-import { appenv } from '@/appenv';
 import { db } from './db';
 const ProxySchema = z.object({
   name: z.string(),
@@ -64,12 +63,7 @@ export async function checkClashConfig(url: string): Promise<{state: boolean, me
   }
 }
 
-async function test() {
-    const res=await checkClashConfig(appenv.testUrl)
-    console.log(res)
-    
-}
-//test()
+
 
 export async function collectAllProxies(): Promise<{
   state: boolean;

@@ -155,6 +155,7 @@ async function deleteProxyUrl(data:DeleteProxyUrlSchema) {
 }
 
 async function getProxyUrls(data:GetProxyUrlSchema) {
+  
   const proxyUrls = await prisma.proxyUrl.findMany({
     where: { uuid: data.uuid }
   })

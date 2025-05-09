@@ -85,43 +85,69 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
   // 为每个地区创建代理组
   regionGroups.forEach((proxies, regionCode) => {
     const regionName = regionNameMap[regionCode] || '未设定地区';
-    baseConfig['proxy-groups']?.push({
-      name: `地区-${regionName}`,
-      type: 'url-test',
-      proxies: proxies,
-      interval: 300
-    });
+    
+    // 检查是否已存在同名组
+    if (!baseConfig['proxy-groups']?.some(g => g.name === regionName)) {
+      baseConfig['proxy-groups']?.push({
+        name: regionName,
+        type: 'select',
+        proxies: proxies
+      });
+    }
     
     // 更新PROXY组的代理列表
     const proxyGroup = baseConfig['proxy-groups']?.find(g => g.name === 'PROXY');
     if (proxyGroup) {
       const regionName = regionNameMap[regionCode] || '未设定地区';
-      proxyGroup.proxies.push(`地区-${regionName}`);
+      const groupName = `${regionName}`;
+      if (!proxyGroup.proxies.includes(groupName)) {
+        proxyGroup.proxies.push(groupName);
+      }
     }
   });
   
-  baseConfig['proxy-groups'] = [
+  // 添加核心代理组（仅当不存在时）
+  const coreGroups: Array<{
+    name: string;
+    type: 'fallback' | 'select' | 'url-test' | 'load-balance';
+    proxies: string[];
+    interval?: number;
+  }> = [
     {
       name: '节点-自动选择',
       type: 'url-test',
       proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])],
-      
       interval: 300
     },
     {
       name: '节点-手动选择',
       type: 'select',
       proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])]
-    },
-    {
-      name: 'PROXY',
-      type: 'select',
-      proxies: baseConfig['proxy-groups']
-        .filter(group => group.name !== 'PROXY')
-        .map(group => group.name)
-        .concat(['DIRECT'])
     }
   ];
+  
+  coreGroups.forEach(group => {
+    if (!baseConfig['proxy-groups']?.some(g => g.name === group.name)) {
+      baseConfig['proxy-groups']?.push(group);
+    }
+  });
+  
+  // 更新PROXY组（仅当不存在时）
+  const proxyGroup = baseConfig['proxy-groups']?.find(g => g.name === 'PROXY');
+  if (!proxyGroup) {
+    baseConfig['proxy-groups']?.push({
+      name: 'PROXY',
+      type: 'select',
+      proxies: [
+        ...(baseConfig['proxy-groups']
+          ?.filter(group => group.name !== 'PROXY')
+          .map(group => group.name) || []),
+        'DIRECT',
+        '节点-自动选择',
+        '节点-手动选择'
+      ].filter((v, i, a) => a.indexOf(v) === i) // 去重
+    });
+  }
 
   // 更新rules
   if (!baseConfig.rules) {

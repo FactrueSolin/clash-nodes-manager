@@ -257,7 +257,7 @@ app.get('/proxyurl', async (c) => {
   const res = await db.getProxyUrls(proxyUrl.data)
   return c.json({
     code: 1,
-    message: res.length > 1 ? `共获取到 ${res.length} 个配置文件` : `${res[0].name}配置文件获取成功`,
+    message:`配置文件获取成功`,
     data: res
   })
 })
