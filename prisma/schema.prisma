@@ -18,6 +18,7 @@ datasource db {
 model Proxy {
   id        String   @id @default(uuid())
   name      String
+  area      String
   ip        String  @unique
   type      String
   port      Int

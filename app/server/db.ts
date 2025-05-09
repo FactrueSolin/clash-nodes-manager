@@ -47,6 +47,7 @@ async function createProxy(data:CreateProxySchema){
     data: {
       name: data.name,
       ip: data.ip,
+      area:data.area,
       type: data.type,
       port: data.port,
       method: data.method,
@@ -68,6 +69,7 @@ async function updateProxy(data:UpdateProxySchema) {
     data: {
       name: data.name,
       ip: data.ip,
+      area:data.area,
       type: data.type,
       port: data.port,
       method: data.method,

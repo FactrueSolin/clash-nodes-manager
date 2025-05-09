@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const createProxySchema = z.object({
   key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
   name: z.coerce.string().min(1, { message: '节点名称必须提供' }),
+  area: z.coerce.string().length(2, { message: '地区必须为2位' }),
   ip: z.coerce.string().ip({ version: 'v4', message: '必须提供有效的IPv4地址' }),
   type: z.coerce.string().min(1, { message: '协议类型必须提供' }),
   port: z.coerce.number().int().min(1).max(65535, { message: '端口必须在1-65535范围内' }),
@@ -14,6 +15,7 @@ export const updateProxySchema = z.object({
   key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
   uuid: z.coerce.string().min(1, { message: '节点ID必须提供' }),
   name: z.coerce.string().optional(),
+  area: z.coerce.string().length(2, { message: '地区必须为2位' }).optional(),
   ip: z.coerce.string().ip({ version: 'v4', message: '必须提供有效的IPv4地址' }).optional(),
   type: z.coerce.string().min(1, { message: '协议类型必须提供' }).optional(),
   port: z.coerce.number().int().min(1).max(65535, { message: '端口必须在1-65535范围内' }).optional(),
@@ -27,7 +29,7 @@ export const deleteProxySchema = z.object({
 })
 
 export const getProxySchema = z.object({
-  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+
   uuid: z.coerce.string().min(1, { message: '节点ID不正确' }).optional()
 })
 
@@ -60,7 +62,16 @@ export const clashConfigSchema = z.object({
   'proxy-groups': z.array(z.object({
     name: z.string(),
     type: z.enum(['select', 'url-test', 'fallback', 'load-balance']),
-    proxies: z.array(z.string())
+    proxies: z.array(z.string()),
+    url: z.string().optional(),
+    interval: z.number().optional(),
+  })).optional(),
+  'rule-providers': z.record(z.object({
+    type: z.string(),
+    behavior: z.string(),
+    url: z.string(),
+    path: z.string(),
+    interval: z.number()
   })).optional(),
   rules: z.array(z.string()).optional()
 })
