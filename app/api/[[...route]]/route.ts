@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
-import { createProxySchema,updateProxySchema,deleteProxySchema,getProxySchema } from './types'
+import { createProxySchema,updateProxySchema,deleteProxySchema,getProxySchema,createProxyUrlSchema,getProxyUrlSchema,deleteProxyUrlSchema,updateProxyUrlSchema } from './types'
 import { appenv } from '@/appenv'
 import { db } from '@/app/server/db'
 import { generateFullConfig } from '@/app/server/config'
@@ -143,7 +143,7 @@ app.get('/proxys', async (c) => {
   })
 })
 
-app.get('/config', async (c) => {
+app.get('/config', async () => {
   const res = await db.getProxys({})
   const config = generateFullConfig(res)
   const yamlData = yaml.dump(config)
@@ -152,6 +152,90 @@ app.get('/config', async (c) => {
       'Content-Type': 'text/yaml',
       'Content-Disposition': 'attachment; filename="clash-config.yaml"'
     }
+  })
+})
+
+
+
+// 创建ProxyUrl配置
+app.post('/proxyurl', async (c) => {
+  const data = await c.req.json()
+  const proxyUrl = createProxyUrlSchema.safeParse(data)
+  if (!proxyUrl.success) {
+    return c.json({ 
+      code: 0,
+      message: proxyUrl.error.format(),
+    }, 400)
+  }
+  const res = await db.createProxyUrl(proxyUrl.data)
+  return c.json({
+    code: 1,
+    message: `${res.name}配置文件已创建成功`,
+    data: res
+  })
+})
+
+// 更新ProxyUrl配置
+app.put('/proxyurl', async (c) => {
+  const data = await c.req.json()
+  const proxyUrl = updateProxyUrlSchema.safeParse(data)
+  if (!proxyUrl.success) {
+    return c.json({ 
+      code: 0,
+      message: proxyUrl.error.format(),
+    }, 400)
+  }
+  const res = await db.updateProxyUrl(proxyUrl.data)
+  if (!res) {
+    return c.json({
+      code: 0,
+      message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
+    }, 400)
+  }
+  return c.json({
+    code: 1,
+    message: `${res.name}配置文件已更新成功`,
+    data: res
+  })
+})
+
+// 删除ProxyUrl配置
+app.delete('/proxyurl', async (c) => {
+  const data = await c.req.json()
+  const proxyUrl = deleteProxyUrlSchema.safeParse(data)
+  if (!proxyUrl.success) {
+    return c.json({
+      code: 0,
+      message: proxyUrl.error.format(),
+    }, 400)
+  }
+  const res = await db.deleteProxyUrl(proxyUrl.data)
+  if (!res) {
+    return c.json({
+      code: 0,
+      message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
+    })
+  }
+  return c.json({
+    code: 1,
+    message: `${res.name}配置文件已删除成功`,
+  })
+})
+
+// 获取ProxyUrl配置
+app.get('/proxyurl', async (c) => {
+  const proxyUrl = getProxyUrlSchema.safeParse(c.req.query())
+  if (!proxyUrl.success) {
+    return c.json({
+      code: 0,
+      message: proxyUrl.error.format(),
+    }, 400)
+  }
+  const res = await db.getProxyUrls(proxyUrl.data)
+  return c.json({
+    code: 1,
+    message: res.length > 1 ? `共获取到 ${res.length} 个配置文件` : `${res[0].name}配置文件获取成功`,
+    data: res
   })
 })
 

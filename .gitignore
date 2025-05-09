@@ -42,4 +42,3 @@ next-env.d.ts
 .wrangler
 .dev.vars*
 appenv.ts
-.env

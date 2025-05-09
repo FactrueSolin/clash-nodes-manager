@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const createProxySchema = z.object({
-  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
   name: z.coerce.string().min(1, { message: '节点名称必须提供' }),
   area: z.coerce.string().length(2, { message: '地区必须为2位' }),
   ip: z.coerce.string().ip({ version: 'v4', message: '必须提供有效的IPv4地址' }),
@@ -12,7 +12,7 @@ export const createProxySchema = z.object({
 })
 
 export const updateProxySchema = z.object({
-  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
   uuid: z.coerce.string().min(1, { message: '节点ID必须提供' }),
   name: z.coerce.string().optional(),
   area: z.coerce.string().length(2, { message: '地区必须为2位' }).optional(),
@@ -24,7 +24,7 @@ export const updateProxySchema = z.object({
 })
 
 export const deleteProxySchema = z.object({
-  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }),
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
   uuid: z.coerce.string().min(1, { message: '节点ID必须提供' })
 })
 
@@ -77,3 +77,33 @@ export const clashConfigSchema = z.object({
 })
 
 export type ClashConfigSchema = z.infer<typeof clashConfigSchema>
+
+export const createProxyUrlSchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
+  name: z.coerce.string().min(1, { message: '配置名称必须提供' }),
+  url: z.coerce.string().url({ message: '必须提供有效的URL地址' }),
+  status: z.coerce.boolean().optional().default(true)
+})
+
+export const updateProxyUrlSchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
+  uuid: z.coerce.string().min(1, { message: '配置文件ID必须提供' }),
+  name: z.coerce.string().min(1, { message: '配置名称必须提供' }).optional(),
+  url: z.coerce.string().url({ message: '必须提供有效的URL地址' }).optional(),
+  status: z.coerce.boolean().optional()
+})
+
+export const deleteProxyUrlSchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
+  uuid: z.coerce.string().min(1, { message: '配置文件ID必须提供' })
+})
+
+export const getProxyUrlSchema = z.object({
+  key: z.coerce.string().min(1, { message: '服务调用权杖必须提供' }).optional(),
+  uuid: z.coerce.string().min(1, { message: '配置文件ID不正确' }).optional()
+})
+
+export type CreateProxyUrlSchema = z.infer<typeof createProxyUrlSchema>
+export type UpdateProxyUrlSchema = z.infer<typeof updateProxyUrlSchema>
+export type DeleteProxyUrlSchema = z.infer<typeof deleteProxyUrlSchema>
+export type GetProxyUrlSchema = z.infer<typeof getProxyUrlSchema>

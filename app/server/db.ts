@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema } from '@/app/api/[[...route]]/types';
+import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema,CreateProxyUrlSchema,UpdateProxyUrlSchema,DeleteProxyUrlSchema,GetProxyUrlSchema } from '@/app/api/[[...route]]/types';
 let prisma: PrismaClient;
 
 async function initPrisma() {
@@ -39,7 +39,23 @@ export const db = {
     await db.ensureInitialized();
     return getProxys(data);
   },
-  initPrisma
+  initPrisma,
+  createProxyUrl: async (data: CreateProxyUrlSchema) => {
+    await db.ensureInitialized();
+    return createProxyUrl(data);
+  },
+  updateProxyUrl: async (data: UpdateProxyUrlSchema) => {
+    await db.ensureInitialized();
+    return updateProxyUrl(data);
+  },
+  deleteProxyUrl: async (data: DeleteProxyUrlSchema) => {
+    await db.ensureInitialized();
+    return deleteProxyUrl(data);
+  },
+  getProxyUrls: async (data: GetProxyUrlSchema) => {
+    await db.ensureInitialized();
+    return getProxyUrls(data);
+  }
 }
 async function createProxy(data:CreateProxySchema){
   
@@ -96,4 +112,51 @@ async function getProxys(data:GetProxySchema) {
     where: { id: data.uuid }
   })
   return proxys
+}
+
+async function createProxyUrl(data:CreateProxyUrlSchema){
+  const proxyUrl = await prisma.proxyUrl.create({
+    data: {
+      name: data.name,
+      url: data.url
+    }
+  })
+  return proxyUrl
+}
+
+async function updateProxyUrl(data:UpdateProxyUrlSchema) {
+  const oldProxyUrl = await prisma.proxyUrl.findUnique({
+    where: { uuid: data.uuid }
+  })
+  if (!oldProxyUrl) {
+    return false
+  }
+  const proxyUrl = await prisma.proxyUrl.update({
+    where: { uuid: data.uuid },
+    data: {
+      name: data.name,
+      url: data.url
+    }
+  })
+  return proxyUrl
+}
+
+async function deleteProxyUrl(data:DeleteProxyUrlSchema) {
+  const oldProxyUrl = await prisma.proxyUrl.findUnique({
+    where: { uuid: data.uuid }
+  })
+  if (!oldProxyUrl) {
+    return false
+  }
+  const proxyUrl = await prisma.proxyUrl.delete({
+    where: { uuid: data.uuid }
+  })
+  return proxyUrl
+}
+
+async function getProxyUrls(data:GetProxyUrlSchema) {
+  const proxyUrls = await prisma.proxyUrl.findMany({
+    where: { uuid: data.uuid }
+  })
+  return proxyUrls
 }
