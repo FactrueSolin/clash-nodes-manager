@@ -1,18 +1,21 @@
 import { ClashConfigSchema } from '@/app/api/[[...route]]/types';
-import { Proxy } from '@prisma/client';
 import { exampleConfig } from '@/app/server/example-config';
 import { collectAllProxies } from './checkUrl';
-export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSchema> {
+import { regionNameMap } from './area-name';
+import { db } from './db';
+export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
   const baseConfig = exampleConfig;
   if (!baseConfig['proxy-groups']) {
     baseConfig['proxy-groups'] = [];
+
   }
+  const data=await db.getProxys({})
   const clashUrlProxys=await collectAllProxies()
   
   // 转换Proxy数据为Clash代理格式
   
   baseConfig.proxies = data.map(proxy => ({
-    name: `${proxy.area} - ${proxy.name}`,
+    name: `${regionNameMap[proxy.area] || '未设定地区'} ${proxy.area} - ${proxy.name}`,
     type: proxy.type,
     server: proxy.ip,
     port: proxy.port,
@@ -51,7 +54,7 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
   
   
   // 添加按地区代码分类的代理组
-  const allProxies = [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])];
+  const allProxies = [...baseConfig.proxies.map(p => p.name)];
   const regionGroups = new Map<string, string[]>();
   
   // 正则匹配两位地区代码并分组
@@ -67,36 +70,7 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
     }
   });
   
-  // 地区代码到中文名称映射
-  const regionNameMap: Record<string, string> = {
-    'HK': '🇭🇰 香港',
-    'US': '🇺🇸 美国',
-    'JP': '🇯🇵 日本',
-    'SG': '🇸🇬 新加坡',
-    'TW': '🇹🇼 台湾',
-    'KR': '🇰🇷 韩国',
-    'UK': '🇬🇧 英国',
-    'DE': '🇩🇪 德国',
-    'FR': '🇫🇷 法国',
-    'CA': '🇨🇦 加拿大',
-    'AU': '🇦🇺 澳大利亚',
-    'IN': '🇮🇳 印度',
-    'BR': '🇧🇷 巴西',
-    'RU': '🇷🇺 俄罗斯',
-    'IT': '🇮🇹 意大利',
-    'ES': '🇪🇸 西班牙',
-    'NL': '🇳🇱 荷兰',
-    'CH': '🇨🇭 瑞士',
-    'SE': '🇸🇪 瑞典',
-    'NO': '🇳🇴 挪威',
-    'FI': '🇫🇮 芬兰',
-    'DK': '🇩🇰 丹麦',
-    'BE': '🇧🇪 比利时',
-    'PT': '🇵🇹 葡萄牙',
-    'IE': '🇮🇪 爱尔兰'
-  };
 
-  // 为每个地区创建代理组
   regionGroups.forEach((proxies, regionCode) => {
     const regionName = regionNameMap[regionCode] || '未设定地区';
     
@@ -104,8 +78,9 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
     if (!baseConfig['proxy-groups']?.some(g => g.name === regionName)) {
       baseConfig['proxy-groups']?.push({
         name: regionName,
-        type: 'select',
-        proxies: proxies
+        type: 'url-test',
+        proxies: proxies,
+        interval: 300,
       });
     }
     
@@ -130,13 +105,13 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
     {
       name: '节点-自动选择',
       type: 'url-test',
-      proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])],
+      proxies: [...allProxies.map(p => p)],
       interval: 300
     },
     {
       name: '节点-手动选择',
       type: 'select',
-      proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])]
+      proxies: [...allProxies.map(p => p)]
     }
   ];
   
@@ -268,6 +243,11 @@ export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSch
     'RULE-SET,applications,DIRECT',
     'DOMAIN,clash.razord.top,DIRECT',
     'DOMAIN,yacd.haishan.me,DIRECT',
+    'IP-CIDR,10.0.0.0/8,DIRECT',
+    'IP-CIDR,172.16.0.0/12,DIRECT',
+    'IP-CIDR,192.168.0.0/16,DIRECT',
+    'IP-CIDR,127.0.0.0/8,DIRECT',
+    'IP-CIDR,169.254.0.0/16,DIRECT',
     'RULE-SET,private,DIRECT',
     'RULE-SET,reject,REJECT',
     'RULE-SET,icloud,DIRECT',

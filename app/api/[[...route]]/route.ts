@@ -147,8 +147,7 @@ app.get('/proxys', async (c) => {
 })
 
 app.get('/config', async () => {
-  const res = await db.getProxys({})
-  const config = await generateFullConfig(res)
+  const config = await generateFullConfig()
  
   const yamlData = yaml.dump(config)
  
