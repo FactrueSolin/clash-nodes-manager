@@ -1,9 +1,13 @@
 import { ClashConfigSchema } from '@/app/api/[[...route]]/types';
 import { Proxy } from '@prisma/client';
 import { exampleConfig } from '@/app/server/example-config';
-
-export function generateFullConfig(data:Proxy[]): ClashConfigSchema {
+import { collectAllProxies } from './checkUrl';
+export  async function  generateFullConfig(data:Proxy[]): Promise<ClashConfigSchema> {
   const baseConfig = exampleConfig;
+  if (!baseConfig['proxy-groups']) {
+    baseConfig['proxy-groups'] = [];
+  }
+  const clashUrlProxys=await collectAllProxies()
   
   // 转换Proxy数据为Clash代理格式
   
@@ -16,32 +20,109 @@ export function generateFullConfig(data:Proxy[]): ClashConfigSchema {
     password: proxy.password
   }));
   
+  // 添加从URL收集的代理节点
+  if (clashUrlProxys.data) {
+    baseConfig.proxies.push(...clashUrlProxys.data.map(proxy => ({
+      name: proxy.name,
+      type: proxy.type,
+      server: proxy.server,
+      port: proxy.port,
+      cipher: proxy.cipher,
+      password: proxy.password,
+      'client-fingerprint': proxy['client-fingerprint'],
+      uuid: proxy.uuid,
+      alterId: proxy.alterId,
+      tls: proxy.tls,
+      tfo: proxy.tfo,
+      'skip-cert-verify': proxy['skip-cert-verify'],
+      network: proxy.network,
+      'ws-opts': proxy['ws-opts'],
+      sni: proxy.sni,
+      udp: proxy.udp
+    })));
+  }
+  
   // 更新proxy-groups
   if (!baseConfig['proxy-groups']) {
     baseConfig['proxy-groups'] = [];
   }
   
-  // 检查是否已存在'自建节点'组，不存在则添加
+  
+  
+  
+  // 添加按地区代码分类的代理组
+  const allProxies = [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])];
+  const regionGroups = new Map<string, string[]>();
+  
+  // 正则匹配两位地区代码并分组
+  const regionRegex = /\b([A-Za-z]{2})\b/;
+  allProxies.forEach(proxyName => {
+    const match = proxyName.match(regionRegex);
+    if (match) {
+      const regionCode = match[1].toUpperCase();
+      if (!regionGroups.has(regionCode)) {
+        regionGroups.set(regionCode, []);
+      }
+      regionGroups.get(regionCode)?.push(proxyName);
+    }
+  });
+  
+  // 地区代码到中文名称映射
+  const regionNameMap: Record<string, string> = {
+    'HK': '香港',
+    'US': '美国',
+    'JP': '日本',
+    'SG': '新加坡',
+    'TW': '台湾',
+    'KR': '韩国',
+    'UK': '英国',
+    'DE': '德国',
+    'FR': '法国',
+    'CA': '加拿大',
+    'AU': '澳大利亚'
+  };
+
+  // 为每个地区创建代理组
+  regionGroups.forEach((proxies, regionCode) => {
+    const regionName = regionNameMap[regionCode] || '未设定地区';
+    baseConfig['proxy-groups']?.push({
+      name: `地区-${regionName}`,
+      type: 'url-test',
+      proxies: proxies,
+      interval: 300
+    });
+    
+    // 更新PROXY组的代理列表
+    const proxyGroup = baseConfig['proxy-groups']?.find(g => g.name === 'PROXY');
+    if (proxyGroup) {
+      const regionName = regionNameMap[regionCode] || '未设定地区';
+      proxyGroup.proxies.push(`地区-${regionName}`);
+    }
+  });
+  
   baseConfig['proxy-groups'] = [
     {
       name: '节点-自动选择',
       type: 'url-test',
-      proxies: data.map(proxy => `${proxy.area} - ${proxy.name}`),
+      proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])],
       
       interval: 300
     },
     {
       name: '节点-手动选择',
       type: 'select',
-      proxies: data.map(proxy => `${proxy.area} - ${proxy.name}`)
+      proxies: [...data.map(proxy => `${proxy.area} - ${proxy.name}`), ...(clashUrlProxys.data?.map(p => p.name) || [])]
     },
     {
       name: 'PROXY',
       type: 'select',
-      proxies: ['节点-自动选择', '节点-手动选择', 'DIRECT']
+      proxies: baseConfig['proxy-groups']
+        .filter(group => group.name !== 'PROXY')
+        .map(group => group.name)
+        .concat(['DIRECT'])
     }
   ];
-  
+
   // 更新rules
   if (!baseConfig.rules) {
     baseConfig.rules = [];

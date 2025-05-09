@@ -32,7 +32,7 @@ model Proxy {
 model ProxyUrl {
   uuid        String   @id @default(uuid())
   name      String
-  url      String
+  url      String @db.VarChar(2000)
   status   Boolean   @default(true)
 
   createdAt DateTime @default(now())

@@ -1,47 +1,50 @@
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
-import { createProxySchema,updateProxySchema,deleteProxySchema,getProxySchema,createProxyUrlSchema,getProxyUrlSchema,deleteProxyUrlSchema,updateProxyUrlSchema } from './types'
+import { createProxySchema, updateProxySchema, deleteProxySchema, getProxySchema, createProxyUrlSchema, getProxyUrlSchema, deleteProxyUrlSchema, updateProxyUrlSchema } from './types'
 import { appenv } from '@/appenv'
 import { db } from '@/app/server/db'
 import { generateFullConfig } from '@/app/server/config'
 import {
-	setCookie,
+  setCookie,
   getCookie,
-  } from 'hono/cookie'
+} from 'hono/cookie'
 import yaml from 'js-yaml'
-const app = new Hono<{Variables:HonoEnv}>().basePath('/api')
+import { checkClashConfig } from '@/app/server/checkUrl'
+const app = new Hono<{ Variables: HonoEnv }>().basePath('/api')
 type HonoEnv = {
-  
-    key: string
-  
+
+  key: string
+
 }
 
-app.use('*',async (c,next)=>{
+app.use('*', async (c, next) => {
 
-  
-  let jsonKey:string|null=null
-  if(c.req.method!='GET'){
-    const body=await c.req.json()
-    jsonKey=body.key
+
+  let jsonKey: string | null = null
+  if (c.req.method != 'GET') {
+    const body = await c.req.json()
+    
+    jsonKey = body.key
   }
- 
-  const cookieKey=getCookie(c,'key')
-  const queryKey=c.req.query('key')
-  const key=queryKey||cookieKey||jsonKey
-  if(key!=appenv.key){
+
+  const headerKey = c.req.header('key')
+  const cookieKey = getCookie(c, 'key')
+  const queryKey = c.req.query('key')
+  const key = queryKey || cookieKey || jsonKey || headerKey
+  if (key != appenv.key) {
     return c.json({
       code: 0,
       message: '认证权杖错误',
     }, 400)
   }
-  c.set('key',key)
+  c.set('key', key)
   await next()
 
 })
 
 app.post('/login', async (c) => {
-  const key=c.get('key')
- 
+  const key = c.get('key')
+
   setCookie(c, 'key', key, {
     httpOnly: true,
     //secure: true,
@@ -59,24 +62,24 @@ app.post('/login', async (c) => {
 
 })
 //创建节点
-app.post('/proxys',async (c) => {
+app.post('/proxys', async (c) => {
   const data = await c.req.json()
   const proxy = createProxySchema.safeParse(data)
   if (!proxy.success) {
-    return c.json({ 
+    return c.json({
       code: 0,
       message: proxy.error.format(),
     }, 400)
   }
-    const res=await db.createProxy(proxy.data)
-    return c.json({
-      code: 1,
-      message: `节点${res.name}添加成功`,
-      data:res
-    })
+  const res = await db.createProxy(proxy.data)
+  return c.json({
+    code: 1,
+    message: `节点${res.name}添加成功`,
+    data: res
+  })
 
-    
-  }
+
+}
 
 )
 
@@ -84,7 +87,7 @@ app.put('/proxys', async (c) => {
   const data = await c.req.json()
   const proxy = updateProxySchema.safeParse(data)
   if (!proxy.success) {
-    return c.json({ 
+    return c.json({
       code: 0,
       message: proxy.error.format(),
     }, 400)
@@ -123,7 +126,7 @@ app.delete('/proxys', async (c) => {
     code: 1,
     message: `节点${res.name}删除成功`,
   })
-  
+
 })
 
 app.get('/proxys', async (c) => {
@@ -145,8 +148,10 @@ app.get('/proxys', async (c) => {
 
 app.get('/config', async () => {
   const res = await db.getProxys({})
-  const config = generateFullConfig(res)
+  const config = await generateFullConfig(res)
+ 
   const yamlData = yaml.dump(config)
+ 
   return new Response(yamlData, {
     headers: {
       'Content-Type': 'text/yaml',
@@ -162,10 +167,18 @@ app.post('/proxyurl', async (c) => {
   const data = await c.req.json()
   const proxyUrl = createProxyUrlSchema.safeParse(data)
   if (!proxyUrl.success) {
-    return c.json({ 
+    return c.json({
       code: 0,
       message: proxyUrl.error.format(),
     }, 400)
+  }
+  const testRes = await checkClashConfig(proxyUrl.data.url)
+  if (!testRes.state) {
+    return c.json({
+      code: 0,
+      message: '配置文件无效' + testRes.message,
+    })
+
   }
   const res = await db.createProxyUrl(proxyUrl.data)
   return c.json({
@@ -180,10 +193,20 @@ app.put('/proxyurl', async (c) => {
   const data = await c.req.json()
   const proxyUrl = updateProxyUrlSchema.safeParse(data)
   if (!proxyUrl.success) {
-    return c.json({ 
+    return c.json({
       code: 0,
       message: proxyUrl.error.format(),
     }, 400)
+  }
+  if (proxyUrl.data.url) {
+    const testRes = await checkClashConfig(proxyUrl.data.url)
+    if (!testRes.state) {
+      return c.json({
+        code: 0,
+        message: '配置文件无效' + testRes.message,
+      })
+
+    }
   }
   const res = await db.updateProxyUrl(proxyUrl.data)
   if (!res) {

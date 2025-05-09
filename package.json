@@ -7,7 +7,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"go":"pnpm i && pnpm run build && pnpm run start",
+		"go": "pnpm i && pnpm run build && pnpm run start",
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
@@ -16,6 +16,7 @@
 		"@opennextjs/cloudflare": "~1.0.0-beta.0 || ^1.0.0",
 		"@prisma/adapter-d1": "^6.7.0",
 		"@prisma/client": "^6.7.0",
+		"axios": "^1.9.0",
 		"hono": "^4.7.8",
 		"js-yaml": "^4.1.0",
 		"next": "15.3.1",
