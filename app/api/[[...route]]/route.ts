@@ -63,20 +63,27 @@ app.post('/login', async (c) => {
 })
 //创建节点
 app.post('/proxys', async (c) => {
-  const data = await c.req.json()
-  const proxy = createProxySchema.safeParse(data)
-  if (!proxy.success) {
+  try {
+    const data = await c.req.json()
+    const proxy = createProxySchema.safeParse(data)
+    if (!proxy.success) {
+      return c.json({
+        code: 0,
+        message: proxy.error.message,
+      }, 400)
+    }
+    const res = await db.createProxy(proxy.data)
+    return c.json({
+      code: 1,
+      message: `节点${res.name}添加成功`,
+      data: res
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxy.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  const res = await db.createProxy(proxy.data)
-  return c.json({
-    code: 1,
-    message: `节点${res.name}添加成功`,
-    data: res
-  })
 
 
 }
@@ -84,66 +91,87 @@ app.post('/proxys', async (c) => {
 )
 
 app.put('/proxys', async (c) => {
-  const data = await c.req.json()
-  const proxy = updateProxySchema.safeParse(data)
-  if (!proxy.success) {
+  try {
+    const data = await c.req.json()
+    const proxy = updateProxySchema.safeParse(data)
+    if (!proxy.success) {
+      return c.json({
+        code: 0,
+        message: proxy.error.message,
+      }, 400)
+    }
+    const res = await db.updateProxy(proxy.data)
+    if (!res) {
+      return c.json({
+        code: 0,
+        message: `uuid:${proxy.data.uuid}节点不存在`,
+      }, 400)
+    }
+    return c.json({
+      code: 1,
+      message: `节点${res.name}更新成功`,
+      data: res
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxy.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  const res = await db.updateProxy(proxy.data)
-  if (!res) {
-    return c.json({
-      code: 0,
-      message: `uuid:${proxy.data.uuid}节点不存在`,
-    }, 400)
-  }
-  return c.json({
-    code: 1,
-    message: `节点${res.name}更新成功`,
-    data: res
-  })
 })
 
 app.delete('/proxys', async (c) => {
-  const data = await c.req.json()
-  const proxy = deleteProxySchema.safeParse(data)
-  if (!proxy.success) {
+  try {
+    const data = await c.req.json()
+    const proxy = deleteProxySchema.safeParse(data)
+    if (!proxy.success) {
+      return c.json({
+        code: 0,
+        message: proxy.error.message,
+      }, 400)
+    }
+    const res = await db.deleteProxy(proxy.data)
+    if (!res) {
+      return c.json({
+        code: 0,
+        message: `uuid:${proxy.data.uuid}节点不存在`,
+      })
+    }
+    return c.json({
+      code: 1,
+      message: `节点${res.name}删除成功`,
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxy.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  const res = await db.deleteProxy(proxy.data)
-  if (!res) {
-    return c.json({
-      code: 0,
-      message: `uuid:${proxy.data.uuid}节点不存在`,
-    })
-  }
-  return c.json({
-    code: 1,
-    message: `节点${res.name}删除成功`,
-  })
 
 })
 
 app.get('/proxys', async (c) => {
-  const proxy = getProxySchema.safeParse(c.req.query())
-  if (!proxy.success) {
+  try {
+    const proxy = getProxySchema.safeParse(c.req.query())
+    if (!proxy.success) {
+      return c.json({
+        code: 0,
+        message: proxy.error.message,
+      }, 400)
+    }
+
+    const res = await db.getProxys(proxy.data)
+    return c.json({
+      code: 1,
+      message: `节点获取成功`,
+      data: res
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxy.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-
-  const res = await db.getProxys(proxy.data)
-  return c.json({
-    code: 1,
-    message: `节点获取成功`,
-    data: res
-  })
 })
 
 app.get('/config', async () => {
@@ -163,41 +191,15 @@ app.get('/config', async () => {
 
 // 创建ProxyUrl配置
 app.post('/proxyurl', async (c) => {
-  const data = await c.req.json()
-  const proxyUrl = createProxyUrlSchema.safeParse(data)
-  if (!proxyUrl.success) {
-    return c.json({
-      code: 0,
-      message: proxyUrl.error.message,
-    }, 400)
-  }
-  const testRes = await checkClashConfig(proxyUrl.data.url)
-  if (!testRes.state) {
-    return c.json({
-      code: 0,
-      message: '配置文件无效' + testRes.message,
-    })
-
-  }
-  const res = await db.createProxyUrl(proxyUrl.data)
-  return c.json({
-    code: 1,
-    message: `${res.name}配置文件已创建成功`,
-    data: res
-  })
-})
-
-// 更新ProxyUrl配置
-app.put('/proxyurl', async (c) => {
-  const data = await c.req.json()
-  const proxyUrl = updateProxyUrlSchema.safeParse(data)
-  if (!proxyUrl.success) {
-    return c.json({
-      code: 0,
-      message: proxyUrl.error.message,
-    }, 400)
-  }
-  if (proxyUrl.data.url) {
+  try {
+    const data = await c.req.json()
+    const proxyUrl = createProxyUrlSchema.safeParse(data)
+    if (!proxyUrl.success) {
+      return c.json({
+        code: 0,
+        message: proxyUrl.error.message,
+      }, 400)
+    }
     const testRes = await checkClashConfig(proxyUrl.data.url)
     if (!testRes.state) {
       return c.json({
@@ -206,59 +208,113 @@ app.put('/proxyurl', async (c) => {
       })
 
     }
-  }
-  const res = await db.updateProxyUrl(proxyUrl.data)
-  if (!res) {
+    const res = await db.createProxyUrl(proxyUrl.data)
+    return c.json({
+      code: 1,
+      message: `${res.name}配置文件已创建成功`,
+      data: res
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  return c.json({
-    code: 1,
-    message: `${res.name}配置文件已更新成功`,
-    data: res
-  })
+})
+
+// 更新ProxyUrl配置
+app.put('/proxyurl', async (c) => {
+  try {
+    const data = await c.req.json()
+    const proxyUrl = updateProxyUrlSchema.safeParse(data)
+    if (!proxyUrl.success) {
+      return c.json({
+        code: 0,
+        message: proxyUrl.error.message,
+      }, 400)
+    }
+    if (proxyUrl.data.url) {
+      const testRes = await checkClashConfig(proxyUrl.data.url)
+      if (!testRes.state) {
+        return c.json({
+          code: 0,
+          message: '配置文件无效' + testRes.message,
+        })
+
+      }
+    }
+    const res = await db.updateProxyUrl(proxyUrl.data)
+    if (!res) {
+      return c.json({
+        code: 0,
+        message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
+      }, 400)
+    }
+    return c.json({
+      code: 1,
+      message: `${res.name}配置文件已更新成功`,
+      data: res
+    })
+  } catch (error) {
+    return c.json({
+      code: 0,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
+    }, 400)
+  }
 })
 
 // 删除ProxyUrl配置
 app.delete('/proxyurl', async (c) => {
-  const data = await c.req.json()
-  const proxyUrl = deleteProxyUrlSchema.safeParse(data)
-  if (!proxyUrl.success) {
+  try {
+    const data = await c.req.json()
+    const proxyUrl = deleteProxyUrlSchema.safeParse(data)
+    if (!proxyUrl.success) {
+      return c.json({
+        code: 0,
+        message: proxyUrl.error.message,
+      }, 400)
+    }
+    const res = await db.deleteProxyUrl(proxyUrl.data)
+    if (!res) {
+      return c.json({
+        code: 0,
+        message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
+      })
+    }
+    return c.json({
+      code: 1,
+      message: `${res.name}配置文件已删除成功`,
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  const res = await db.deleteProxyUrl(proxyUrl.data)
-  if (!res) {
-    return c.json({
-      code: 0,
-      message: `uuid:${proxyUrl.data.uuid}配置文件不存在`,
-    })
-  }
-  return c.json({
-    code: 1,
-    message: `${res.name}配置文件已删除成功`,
-  })
 })
 
 // 获取ProxyUrl配置
 app.get('/proxyurl', async (c) => {
-  const proxyUrl = getProxyUrlSchema.safeParse(c.req.query())
-  if (!proxyUrl.success) {
+  try {
+    const proxyUrl = getProxyUrlSchema.safeParse(c.req.query())
+    if (!proxyUrl.success) {
+      return c.json({
+        code: 0,
+        message: proxyUrl.error.message,
+      }, 400)
+    }
+    const res = await db.getProxyUrls(proxyUrl.data)
+    return c.json({
+      code: 1,
+      message:`配置文件获取成功`,
+      data: res
+    })
+  } catch (error) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.message,
+      message: `数据库操作失败: ${error instanceof Error ? error.message : String(error)}`
     }, 400)
   }
-  const res = await db.getProxyUrls(proxyUrl.data)
-  return c.json({
-    code: 1,
-    message:`配置文件获取成功`,
-    data: res
-  })
 })
 
 export const GET = handle(app)
