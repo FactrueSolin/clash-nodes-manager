@@ -20,7 +20,7 @@ export default async function ProxyUrls() {
                 <div className="space-y-3">
                   <h2 className="text-xl font-semibold">{proxy.name}</h2>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <p className="text-gray-600"><span className="font-medium">URL:</span> {proxy.url}</p>
+                    <p className="text-gray-600"><span className="font-medium">URL:</span> {proxy.url.length > 30 ? `${proxy.url.substring(0, 30)}...` : proxy.url}</p>
                     <p className="text-gray-600"><span className="font-medium">状态:</span> 
                       <span className={`px-2 py-1 rounded ${proxy.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {proxy.status ? '启用' : '禁用'}

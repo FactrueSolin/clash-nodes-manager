@@ -3,6 +3,7 @@ import { db } from "@/app/server/db";
 import DeleteProxyButton from "@/app/commont/DeleteProxyButton";
 import CreateProxyForm from "@/app/commont/CreateProxyForm";
 import UpdateProxyForm from "@/app/commont/UpdateProxyForm";
+import { regionNameMap } from "@/app/server/area-name";
 export default async function Proxys() {
     
   const  data  = await db.getProxys({});
@@ -18,9 +19,12 @@ export default async function Proxys() {
         {data.map((proxy) => (
           <div key={proxy.id} className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-all duration-300 w-full">
             <div className="flex justify-between items-start">
-              <div className="space-y-3">
-                <h2 className="text-xl font-semibold">{proxy.name}</h2>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div className="space-y-3 flex-1">
+                <div>
+                  <h2 className="text-xl font-semibold">{proxy.name}</h2>
+                  {proxy.area && <p className="text-gray-600 mt-1">{regionNameMap[proxy.area] || proxy.area}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mx-auto">
                   <p className="text-gray-600"><span className="font-medium">类型:</span> {proxy.type}</p>
                   <p className="text-gray-600"><span className="font-medium">IP:</span> {proxy.ip}</p>
                   <p className="text-gray-600"><span className="font-medium">端口:</span> {proxy.port}</p>
@@ -30,7 +34,7 @@ export default async function Proxys() {
                     </span>
                   </p>
                 </div>
-                <p className="text-gray-500 text-sm">更新时间: {new Date(proxy.updatedAt).toLocaleString()}</p>
+                <p className="text-gray-500 text-sm text-center">更新时间: {new Date(proxy.updatedAt).toLocaleString()}</p>
               </div>
               <div className="flex flex-col space-y-2">
                 <UpdateProxyForm proxy={proxy} />
