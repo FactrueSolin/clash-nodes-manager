@@ -68,7 +68,7 @@ app.post('/proxys', async (c) => {
   if (!proxy.success) {
     return c.json({
       code: 0,
-      message: proxy.error.format(),
+      message: proxy.error.message,
     }, 400)
   }
   const res = await db.createProxy(proxy.data)
@@ -89,7 +89,7 @@ app.put('/proxys', async (c) => {
   if (!proxy.success) {
     return c.json({
       code: 0,
-      message: proxy.error.format(),
+      message: proxy.error.message,
     }, 400)
   }
   const res = await db.updateProxy(proxy.data)
@@ -112,7 +112,7 @@ app.delete('/proxys', async (c) => {
   if (!proxy.success) {
     return c.json({
       code: 0,
-      message: proxy.error.format(),
+      message: proxy.error.message,
     }, 400)
   }
   const res = await db.deleteProxy(proxy.data)
@@ -134,7 +134,7 @@ app.get('/proxys', async (c) => {
   if (!proxy.success) {
     return c.json({
       code: 0,
-      message: proxy.error.format(),
+      message: proxy.error.message,
     }, 400)
   }
 
@@ -168,7 +168,7 @@ app.post('/proxyurl', async (c) => {
   if (!proxyUrl.success) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.format(),
+      message: proxyUrl.error.message,
     }, 400)
   }
   const testRes = await checkClashConfig(proxyUrl.data.url)
@@ -194,7 +194,7 @@ app.put('/proxyurl', async (c) => {
   if (!proxyUrl.success) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.format(),
+      message: proxyUrl.error.message,
     }, 400)
   }
   if (proxyUrl.data.url) {
@@ -228,7 +228,7 @@ app.delete('/proxyurl', async (c) => {
   if (!proxyUrl.success) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.format(),
+      message: proxyUrl.error.message,
     }, 400)
   }
   const res = await db.deleteProxyUrl(proxyUrl.data)
@@ -250,7 +250,7 @@ app.get('/proxyurl', async (c) => {
   if (!proxyUrl.success) {
     return c.json({
       code: 0,
-      message: proxyUrl.error.format(),
+      message: proxyUrl.error.message,
     }, 400)
   }
   const res = await db.getProxyUrls(proxyUrl.data)
