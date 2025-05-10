@@ -2,6 +2,7 @@ import yaml from 'js-yaml';
 import axios from 'axios';
 import { z } from 'zod';
 import { db } from './db';
+import { kv } from './kv';
 const ProxySchema = z.object({
   name: z.string(),
   type: z.string(),
@@ -35,15 +36,26 @@ const clashConfigSchema = z.object({
 });
 type ClashConfigSchema = z.infer<typeof clashConfigSchema>
 
-export async function checkClashConfig(url: string): Promise<{state: boolean, message: string, data?:ClashConfigSchema }> {
+export async function getProxysByUrl(url: string): Promise<{state: boolean, message: string, data?:ClashConfigSchema }> {
   try {
     // 下载配置文件
+   
+    const cacheKey=`clash_config_${url}`;
+    const cacheData=await kv.get(cacheKey);
+    if(cacheData){
+      return {
+        state: true,
+        message: '配置验证成功',
+        data: JSON.parse(cacheData)
+      };
+    }
     const response = await axios.get(url);
     const config = yaml.load(response.data);
     
     // 使用zod验证配置结构
     const result = clashConfigSchema.safeParse(config);
     if (result.success) {
+      await kv.set(cacheKey,JSON.stringify(result.data),60*60*24);
       return {
         state: true,
         message: '配置验证成功',
@@ -76,7 +88,7 @@ export async function collectAllProxies(): Promise<{
     
 
     for (const url of proxyUrls) {
-      const result = await checkClashConfig(url.url);
+      const result = await getProxysByUrl(url.url);
       if (result.state && result.data?.proxies && result.data.proxies.length > 0) {
         const modifiedProxies = result.data.proxies.map(proxy => ({
           ...proxy,

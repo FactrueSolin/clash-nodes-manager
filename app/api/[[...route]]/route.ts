@@ -9,7 +9,7 @@ import {
   getCookie,
 } from 'hono/cookie'
 import yaml from 'js-yaml'
-import { checkClashConfig } from '@/app/server/checkUrl'
+import { getProxysByUrl } from '@/app/server/checkUrl'
 const app = new Hono<{ Variables: HonoEnv }>().basePath('/api')
 type HonoEnv = {
 
@@ -200,7 +200,7 @@ app.post('/proxyurl', async (c) => {
         message: proxyUrl.error.message,
       }, 400)
     }
-    const testRes = await checkClashConfig(proxyUrl.data.url)
+    const testRes = await getProxysByUrl(proxyUrl.data.url)
     if (!testRes.state) {
       return c.json({
         code: 0,
@@ -234,7 +234,7 @@ app.put('/proxyurl', async (c) => {
       }, 400)
     }
     if (proxyUrl.data.url) {
-      const testRes = await checkClashConfig(proxyUrl.data.url)
+      const testRes = await getProxysByUrl(proxyUrl.data.url)
       if (!testRes.state) {
         return c.json({
           code: 0,
