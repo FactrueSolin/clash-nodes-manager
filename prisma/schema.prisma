@@ -22,7 +22,7 @@ model Proxy {
   ip        String  @unique
   type      String
   port      Int
-  method    String
+  method    String @default("auto")
   password  String
   status   Boolean   @default(true)
   createdAt DateTime @default(now())

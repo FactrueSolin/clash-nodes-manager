@@ -19,7 +19,7 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
     type: proxy.type,
     server: proxy.ip,
     port: proxy.port,
-    cipher: proxy.method,
+    cipher: proxy.method || 'auto',
     password: proxy.password
   }));
   

@@ -8,6 +8,8 @@ interface ProxyData {
   ip: string;
   port: number;
   status: boolean;
+  method: string;
+  password: string;
 }
 
 export default function UpdateProxyForm({ proxy }: { proxy: ProxyData }) {
@@ -18,7 +20,9 @@ export default function UpdateProxyForm({ proxy }: { proxy: ProxyData }) {
     type: '',
     ip: '',
     port: 0,
-    status: true
+    status: true,
+    method: '',
+    password: ''
   });
   const [message, setMessage] = useState('');
 
@@ -166,6 +170,30 @@ export default function UpdateProxyForm({ proxy }: { proxy: ProxyData }) {
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <label className="ml-2 block text-sm text-gray-700">启用节点</label>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">加密方式</label>
+          <input
+            type="text"
+            name="method"
+            value={formData.method}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">连接密码</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            required
+          />
         </div>
         
         <button

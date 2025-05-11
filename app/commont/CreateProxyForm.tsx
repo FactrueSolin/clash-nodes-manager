@@ -9,6 +9,8 @@ export default function CreateProxyForm() {
     ip: '',
     port: '',
     area: '',
+    method: '',
+    password: '',
     status: true
   });
   const [message, setMessage] = useState('');
@@ -60,6 +62,8 @@ export default function CreateProxyForm() {
           ip: '',
           port: '',
           area: '',
+          method: '',
+          password: '',
           status: true
         });
         // 刷新页面
@@ -163,6 +167,30 @@ export default function CreateProxyForm() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             pattern="[A-Za-z]{2}"
             title="请输入两位字母的地区代码"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">加密方式</label>
+          <input
+            type="text"
+            name="method"
+            value={formData.method}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">连接密码</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
           />
         </div>
