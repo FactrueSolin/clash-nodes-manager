@@ -200,7 +200,7 @@ app.get('/config', async () => {
   return new Response(yamlData, {
     headers: {
       'Content-Type': 'text/yaml',
-      'Content-Disposition': 'attachment; filename="clash-config.yaml"'
+      'Content-Disposition': 'attachment; filename=clash-nodes-manager.yaml'
     }
   })
 })
