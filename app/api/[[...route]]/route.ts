@@ -31,7 +31,7 @@ app.use('*', async (c, next) => {
       
       return c.json({
         code: 0,
-        message: '非get请求，但未提供json格式的请求体',
+        message: '非get请求，但未提供json格式的请求体'+err,
 
       })
     }

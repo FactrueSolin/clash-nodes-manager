@@ -7,10 +7,11 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"go": "pnpm i && pnpm run build && pnpm run start",
+		"go": "pnpm i && pnpm run db-init && pnpm run build && pnpm run start",
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+		"db-init": "npx prisma generate && npx prisma db push"
 	},
 	"dependencies": {
 		"@opennextjs/cloudflare": "~1.0.0-beta.0 || ^1.0.0",
@@ -21,6 +22,7 @@
 		"ioredis": "^5.6.1",
 		"js-yaml": "^4.1.0",
 		"next": "15.3.1",
+		"prisma": "^6.7.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"zod": "^3.24.4"

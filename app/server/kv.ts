@@ -17,7 +17,7 @@ async function set(key:string,value:string,expire:number=60*60*24){
 }
 
 async function get(key:string){
-    console.log('击中缓存')
+    
     return await redis.get(key)
 }
 async function del(key:string){

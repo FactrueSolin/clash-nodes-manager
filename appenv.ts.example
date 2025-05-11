@@ -1,3 +1,7 @@
 export const appenv={
-    key:"yout-key",
+    redis_host:"your_redis_host",
+    redis_port:6379, //redis默认端口
+    redis_password:'your_redis_password',
+    redis_db:5,
+    key:"your_secret_key",
 }
