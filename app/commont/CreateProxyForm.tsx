@@ -13,8 +13,12 @@ export default function CreateProxyForm() {
   });
   const [message, setMessage] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const { name, value } = target;
+    const type = target.type;
+    const checked = (target as HTMLInputElement).checked;
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -116,10 +120,11 @@ export default function CreateProxyForm() {
           <select
             name="type"
             value={formData.type}
-            
+            onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
           >
+            <option value="">请选择节点类型</option>
             <option value="ss">ss</option>
           </select>
         </div>
