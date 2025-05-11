@@ -7,6 +7,7 @@ import { generateFullConfig } from '@/app/server/config'
 import {
   setCookie,
   getCookie,
+  deleteCookie
 } from 'hono/cookie'
 import yaml from 'js-yaml'
 import { getProxysByUrl } from '@/app/server/checkUrl'
@@ -22,9 +23,18 @@ app.use('*', async (c, next) => {
 
   let jsonKey: string | null = null
   if (c.req.method != 'GET') {
-    const body = await c.req.json()
-    
-    jsonKey = body.key
+    try {
+      const body = await c.req.json()
+
+      jsonKey = body.key
+    } catch (err) {
+      
+      return c.json({
+        code: 0,
+        message: '非get请求，但未提供json格式的请求体',
+
+      })
+    }
   }
 
   const headerKey = c.req.header('key')
@@ -60,6 +70,14 @@ app.post('/login', async (c) => {
 
 
 
+})
+
+app.get('/logout', async (c) => {
+  deleteCookie(c, 'key')
+  return c.json({
+    code: 1,
+    message: '登出成功',
+  })
 })
 //创建节点
 app.post('/proxys', async (c) => {
@@ -176,9 +194,9 @@ app.get('/proxys', async (c) => {
 
 app.get('/config', async () => {
   const config = await generateFullConfig()
- 
+
   const yamlData = yaml.dump(config)
- 
+
   return new Response(yamlData, {
     headers: {
       'Content-Type': 'text/yaml',
@@ -306,7 +324,7 @@ app.get('/proxyurl', async (c) => {
     const res = await db.getProxyUrls(proxyUrl.data)
     return c.json({
       code: 1,
-      message:`配置文件获取成功`,
+      message: `配置文件获取成功`,
       data: res
     })
   } catch (error) {
