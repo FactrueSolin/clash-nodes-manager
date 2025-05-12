@@ -57,6 +57,7 @@ export const regionNameMap: Record<string, string> = {
     'TM': '🇹🇲 土库曼斯坦',
     'MN': '🇲🇳 蒙古',
     'AR': '🇦🇷 阿根廷',
+    'MY': '🇲🇾 马来西亚',
 
     'CN': '🇨🇳 中国',
   };

@@ -3,12 +3,13 @@ import axios from 'axios';
 import { z } from 'zod';
 import { db } from './db';
 import { kv } from './kv';
+
 const ProxySchema = z.object({
   name: z.string(),
   type: z.string(),
   server: z.string(),
   port: z.number(),
-  cipher: z.string().optional(),
+  cipher: z.string().optional().default('auto'),
   password: z.string().optional(),
   'client-fingerprint': z.string().optional(),
   uuid: z.string().optional(),
@@ -24,19 +25,73 @@ const ProxySchema = z.object({
       headers: z.record(z.string()).optional()
     })
   ]).optional(),
-  sni: z.string().optional(),
-  udp: z.boolean().optional()
+ 
+  udp: z.boolean().optional(),
+  // VMess specific fields
+  'ws-headers': z.record(z.string()).optional(),
+  'h2-opts': z.object({
+    host: z.array(z.string()).optional(),
+    path: z.string().optional()
+  }).optional(),
+  'http-opts': z.object({
+    method: z.string().optional(),
+    path: z.array(z.string()).optional(),
+    headers: z.record(z.array(z.string())).optional()
+  }).optional(),
+  // HTTP/Socks5 specific fields
+  username: z.string().optional(),
+  'sni': z.string().optional(),
+  'alpn': z.array(z.string()).optional(),
+  'servername': z.string().optional(),
+  'disable-sni': z.boolean().optional(),
+  'recv-window': z.number().optional(),
+  'recv-window-conn': z.number().optional(),
+  'reality-opts': z.object({
+    'public-key': z.string(),
+    'short-id': z.string().optional()
+  }).optional(),
+  // Shadowsocks specific fields
+  'plugin': z.string().optional(),
+  'plugin-opts': z.object({
+    mode: z.string().optional(),
+    host: z.string().optional()
+  }).optional(),
+  // ShadowsocksR specific fields
+  'obfs': z.string().optional(),
+  'protocol': z.string().optional(),
+  'obfs-param': z.string().optional(),
+  'protocol-param': z.string().optional(),
+  // Snell specific fields
+  'psk': z.string().optional(),
+  'version': z.number().optional(),
+  'obfs-opts': z.object({
+    mode: z.string().optional(),
+    host: z.string().optional()
+  }).optional(),
+  // Trojan specific fields
+  'flow': z.string().optional()
 }).passthrough();
 
 const clashConfigSchema = z.object({
   proxies: z.array(ProxySchema).min(1),
   'proxy-groups': z.array(z.object({
     name: z.string(),
-    type: z.string(),
-    proxies: z.array(z.string())
+    type: z.enum(['select', 'relay', 'url-test', 'fallback', 'load-balance']),
+    proxies: z.array(z.string()),
+    // relay specific
+    'disable-udp': z.boolean().optional().default(false),
+    // url-test/fallback specific
+    url: z.string().url().optional().default('http://www.gstatic.com/generate_204'),
+    interval: z.number().int().min(60).optional().default(300),
+    tolerance: z.number().int().min(0).optional().default(50),
+    // load-balance specific
+    'persistent': z.boolean().optional().default(false),
+    'persistent-timeout': z.number().int().min(1).optional().default(5),
+    // interface selection
+    'interface-name': z.string().optional().default('')
   })).optional(),
   rules: z.array(z.string()).optional()
-});
+}).passthrough();
 type ClashConfigSchema = z.infer<typeof clashConfigSchema>
 
 export async function getProxysByUrl(url: string): Promise<{state: boolean, message: string, data?:ClashConfigSchema }> {

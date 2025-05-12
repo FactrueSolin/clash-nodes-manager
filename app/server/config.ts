@@ -87,6 +87,8 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
         name: regionName,
         type: 'url-test',
         proxies: proxies,
+        url:"http://www.gstatic.com/generate_204",
+        
         interval: 300,
       });
     }
@@ -107,12 +109,14 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
     name: string;
     type: 'fallback' | 'select' | 'url-test' | 'load-balance';
     proxies: string[];
+    url?: string;
     interval?: number;
   }> = [
     {
       name: '节点-自动选择',
       type: 'url-test',
       proxies: [...allProxies.map(p => p)],
+      url:'http://www.gstatic.com/generate_204',
       interval: 300
     },
     {
