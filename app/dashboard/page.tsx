@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { appenv } from "@/appenv";
 import { db } from "@/app/server/db";
-
+import { regionNameMap } from "@/app/server/area-name";
 export default async function Dashboard() {
     const cookie=await cookies()
     
@@ -16,13 +16,29 @@ export default async function Dashboard() {
   
   // 合并两个代理数组
   const allProxies = [
-    ...(urlProxies.data || []),
-    ...ownProxis.map(p => ({
-      name: p.name,
-      type: p.type,
-      server: p.ip,
-      port: p.port
-    })),
+    ...(urlProxies.data || []).map(p => {
+     
+      const areaCode = p.name.match(/^([A-Z]{2})/)?.[1] || '';
+      
+      const displayName = regionNameMap[areaCode] ? `${regionNameMap[areaCode]}-${p.name}` : p.name;
+      return {
+        name: displayName,
+        type: p.type,
+        server: p.server,
+        port: p.port
+      };
+    }),
+    ...ownProxis.map(p => {
+      
+      const displayName = regionNameMap[p.area] ? `${regionNameMap[p.area]}-${p.name}` : p.name;
+     
+      return {
+        name: displayName,
+        type: p.type,
+        server: p.ip,
+        port: p.port
+      };
+    }),
     
   ];
   

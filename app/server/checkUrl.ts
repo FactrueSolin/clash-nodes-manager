@@ -17,13 +17,16 @@ const ProxySchema = z.object({
   tfo: z.boolean().optional(),
   'skip-cert-verify': z.boolean().optional(),
   network: z.string().optional(),
-  'ws-opts': z.object({
-    path: z.string().optional(),
-    headers: z.record(z.string()).optional()
-  }).optional(),
+  'ws-opts': z.union([
+    z.string(),
+    z.object({
+      path: z.string().optional(),
+      headers: z.record(z.string()).optional()
+    })
+  ]).optional(),
   sni: z.string().optional(),
   udp: z.boolean().optional()
-});
+}).passthrough();
 
 const clashConfigSchema = z.object({
   proxies: z.array(ProxySchema).min(1),
@@ -50,7 +53,19 @@ export async function getProxysByUrl(url: string): Promise<{state: boolean, mess
       };
     }
     const response = await axios.get(url);
-    const config = yaml.load(response.data);
+    
+    // 检测是否为base64编码内容
+    let configData = response.data;
+    if (/^[A-Za-z0-9+/]+={0,2}$/.test(configData.trim())) {
+      configData = Buffer.from(configData, 'base64').toString('utf8');
+      return {
+        state: false,
+        message: '暂不支持uft-8编码的配置文件',
+      }
+    }
+   
+    
+    const config = yaml.load(configData);
     
     // 使用zod验证配置结构
     const result = clashConfigSchema.safeParse(config);

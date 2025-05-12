@@ -107,7 +107,7 @@ app.post('/proxys', async (c) => {
 }
 
 )
-
+//更新节点测试
 app.put('/proxys', async (c) => {
   try {
     const data = await c.req.json()
@@ -208,6 +208,7 @@ app.get('/config', async () => {
 
 
 // 创建ProxyUrl配置
+//暂未处理state为无效的情况
 app.post('/proxyurl', async (c) => {
   try {
     const data = await c.req.json()
@@ -223,7 +224,7 @@ app.post('/proxyurl', async (c) => {
       return c.json({
         code: 0,
         message: '配置文件无效' + testRes.message,
-      })
+      },400)
 
     }
     const res = await db.createProxyUrl(proxyUrl.data)

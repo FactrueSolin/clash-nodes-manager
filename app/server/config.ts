@@ -25,24 +25,31 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
   
   // 添加从URL收集的代理节点
   if (clashUrlProxys.data) {
-    baseConfig.proxies.push(...clashUrlProxys.data.map(proxy => ({
-      name: proxy.name,
-      type: proxy.type,
-      server: proxy.server,
-      port: proxy.port,
-      cipher: proxy.cipher,
-      password: proxy.password,
-      'client-fingerprint': proxy['client-fingerprint'],
-      uuid: proxy.uuid,
-      alterId: proxy.alterId,
-      tls: proxy.tls,
-      tfo: proxy.tfo,
-      'skip-cert-verify': proxy['skip-cert-verify'],
-      network: proxy.network,
-      'ws-opts': proxy['ws-opts'],
-      sni: proxy.sni,
-      udp: proxy.udp
-    })));
+    baseConfig.proxies.push(...clashUrlProxys.data.map(proxy => {
+      // 从代理名称中提取地区代码
+      const regionMatch = proxy.name.match(/\b([A-Za-z]{2})\b/);
+      const regionCode = regionMatch ? regionMatch[1].toUpperCase() : '';
+      const regionName = regionNameMap[regionCode] || '未设定地区';
+      
+      return {
+        name: `${regionName} ${regionCode} - ${proxy.name}`,
+        type: proxy.type,
+        server: proxy.server,
+        port: proxy.port,
+        cipher: proxy.cipher,
+        password: proxy.password,
+        'client-fingerprint': proxy['client-fingerprint'],
+        uuid: proxy.uuid,
+        alterId: proxy.alterId,
+        tls: proxy.tls,
+        tfo: proxy.tfo,
+        'skip-cert-verify': proxy['skip-cert-verify'],
+        network: proxy.network,
+        'ws-opts': proxy['ws-opts'],
+        sni: proxy.sni,
+        udp: proxy.udp
+      };
+    }));
   }
   
   // 更新proxy-groups

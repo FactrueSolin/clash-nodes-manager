@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-
+import { kv } from './kv';
 import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema,CreateProxyUrlSchema,UpdateProxyUrlSchema,DeleteProxyUrlSchema,GetProxyUrlSchema } from '@/app/api/[[...route]]/types';
 let prisma: PrismaClient;
 
@@ -148,6 +148,8 @@ async function deleteProxyUrl(data:DeleteProxyUrlSchema) {
   if (!oldProxyUrl) {
     return false
   }
+  const cacheKey=`clash_config_${oldProxyUrl.url}`;
+  await kv.del(cacheKey);
   const proxyUrl = await prisma.proxyUrl.delete({
     where: { uuid: data.uuid }
   })
