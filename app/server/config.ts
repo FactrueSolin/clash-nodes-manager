@@ -2,6 +2,8 @@ import { ClashConfigSchema } from '@/app/api/[[...route]]/types';
 import { exampleConfig } from '@/app/server/example-config';
 import { collectAllProxies } from './checkUrl';
 import { regionNameMap } from './area-name';
+import axios from 'axios';
+import yaml from 'js-yaml'
 import { db } from './db';
 export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
   const baseConfig = exampleConfig;
@@ -155,103 +157,82 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
   }
   
   // 添加规则提供者和规则集
-  baseConfig['rule-providers'] = {
-    reject: {
+  const allRule = 
+   [{
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt',
       path: './ruleset/reject.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'REJECT'
     },
-    icloud: {
+   {
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt',
       path: './ruleset/icloud.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    apple: {
+    {
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt',
       path: './ruleset/apple.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    google: {
-      type: 'http',
-      behavior: 'domain',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt',
-      path: './ruleset/google.yaml',
-      interval: 86400
-    },
-    proxy: {
-      type: 'http',
-      behavior: 'domain',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt',
-      path: './ruleset/proxy.yaml',
-      interval: 86400
-    },
-    direct: {
+   
+    
+     {
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt',
       path: './ruleset/direct.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    private: {
+ {
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt',
       path: './ruleset/private.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    gfw: {
-      type: 'http',
-      behavior: 'domain',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt',
-      path: './ruleset/gfw.yaml',
-      interval: 86400
-    },
-    tldNotCn: {
-      type: 'http',
-      behavior: 'domain',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt',
-      path: './ruleset/tld-not-cn.yaml',
-      interval: 86400
-    },
-    telegramcidr: {
-      type: 'http',
-      behavior: 'ipcidr',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt',
-      path: './ruleset/telegramcidr.yaml',
-      interval: 86400
-    },
-    cncidr: {
+ 
+ 
+
+    {
       type: 'http',
       behavior: 'ipcidr',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt',
       path: './ruleset/cncidr.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    lancidr: {
+ {
       type: 'http',
       behavior: 'ipcidr',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt',
       path: './ruleset/lancidr.yaml',
-      interval: 86400
+      interval: 86400,
+      action: 'DIRECT'
     },
-    applications: {
-      type: 'http',
-      behavior: 'classical',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt',
-      path: './ruleset/applications.yaml',
-      interval: 86400
-    }
-  };
+    ]
+  const urls=allRule.map((a)=>{
+    return createRule(a.url,a.action)
+    
+  })
 
-  // 添加白名单模式规则
-  baseConfig.rules = [
-    'RULE-SET,applications,DIRECT',
+  const urlRsponse=await Promise.all(urls)
+  
+  // 合并从URL获取的规则
+  const mergedRules = [
+    ...urlRsponse.flat(),
+    ...[
+    
+    
     'DOMAIN,clash.razord.top,DIRECT',
     'DOMAIN,yacd.haishan.me,DIRECT',
     'IP-CIDR,10.0.0.0/8,DIRECT',
@@ -259,21 +240,40 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
     'IP-CIDR,192.168.0.0/16,DIRECT',
     'IP-CIDR,127.0.0.0/8,DIRECT',
     'IP-CIDR,169.254.0.0/16,DIRECT',
-    'RULE-SET,private,DIRECT',
-    'RULE-SET,reject,REJECT',
-    'RULE-SET,icloud,DIRECT',
-    'RULE-SET,apple,DIRECT',
-    'RULE-SET,google,PROXY',
-    'RULE-SET,proxy,PROXY',
-    'RULE-SET,direct,DIRECT',
-    'RULE-SET,lancidr,DIRECT',
-    'RULE-SET,cncidr,DIRECT',
-    'RULE-SET,telegramcidr,PROXY',
     'GEOIP,LAN,DIRECT',
     'GEOIP,CN,DIRECT',
     'MATCH,PROXY'
-  ];
+  ]]
+  baseConfig.rules = mergedRules;
   
   return baseConfig;
 }
 
+
+import { appenv } from '@/appenv';
+import { kv } from './kv';
+async function createRule(url: string,action:string) {
+  const cache = await kv.get(url)
+  if(cache){
+    return JSON.parse(cache) as string[];
+  }
+  const response = await axios.get(url,{
+      proxy:{
+          protocol:"http",
+          host:appenv.http_proxy_host,
+          port:appenv.http_proxy_port,
+      }
+  });
+  if(response.data){
+  const data = response.data
+  const allrule = yaml.load(data) as {payload:string[]};
+  allrule.payload = allrule.payload.map(item => item.replace(/^\+\./, ''));
+  const rules=allrule.payload.map((a)=>{
+    return `DOMAIN-SUFFIX,${a},${action}`
+  })
+  await kv.set(url,JSON.stringify(rules))
+  
+  return rules;
+}
+  return [];
+}
