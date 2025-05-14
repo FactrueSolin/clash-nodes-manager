@@ -158,7 +158,16 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
   
   // 添加规则提供者和规则集
   const allRule = 
-   [{
+   [
+    {
+      type: 'http',
+      behavior: 'domain',
+      url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt",
+      path: './ruleset/direct.yaml',
+      interval: 86400,
+      action: 'DIRECT'
+    },
+    {
       type: 'http',
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt',
@@ -179,16 +188,6 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
       behavior: 'domain',
       url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt',
       path: './ruleset/apple.yaml',
-      interval: 86400,
-      action: 'DIRECT'
-    },
-   
-    
-     {
-      type: 'http',
-      behavior: 'domain',
-      url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt',
-      path: './ruleset/direct.yaml',
       interval: 86400,
       action: 'DIRECT'
     },
@@ -270,7 +269,7 @@ async function createRule(url: string,action:string) {
   allrule.payload = allrule.payload.map(item => item.replace(/^\+\./, ''));
   const rules=allrule.payload.map((a)=>{
     return `DOMAIN-SUFFIX,${a},${action}`
-  })
+  }).slice(0, 10000)
   await kv.set(url,JSON.stringify(rules))
   
   return rules;
