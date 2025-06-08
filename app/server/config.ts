@@ -249,20 +249,14 @@ export  async function  generateFullConfig(): Promise<ClashConfigSchema> {
 }
 
 
-import { appenv } from '@/appenv';
+
 import { kv } from './kv';
 async function createRule(url: string,action:string) {
   const cache = await kv.get(url)
   if(cache){
     return JSON.parse(cache) as string[];
   }
-  const response = await axios.get(url,{
-      proxy:{
-          protocol:"http",
-          host:appenv.http_proxy_host,
-          port:appenv.http_proxy_port,
-      }
-  });
+  const response = await axios.get(url);
   if(response.data){
   const data = response.data
   const allrule = yaml.load(data) as {payload:string[]};

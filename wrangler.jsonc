@@ -23,7 +23,13 @@
       "binding": "DB",
       "database_name": "clash-url-generator",
       "database_id": "415c981e-1d86-4bcf-a31a-7b02cefe1dfa"
-    }]
+    }],
+	"kv_namespaces": [
+    {
+      "binding": "kv",
+      "id": "efc3da51661b443c9e7ee99300b54387"
+    }
+  ]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
