@@ -1,15 +1,15 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaD1 } from '@prisma/adapter-d1'
 import { kv } from './kv';
 import { CreateProxySchema,UpdateProxySchema,DeleteProxySchema,GetProxySchema,CreateProxyUrlSchema,UpdateProxyUrlSchema,DeleteProxyUrlSchema,GetProxyUrlSchema } from '@/app/api/[[...route]]/types';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-let prisma: PrismaClient;
+import { drizzle } from 'drizzle-orm/d1';
+import { proxy, proxyUrl } from '../db/scheme';
+import { eq } from 'drizzle-orm';
 
-async function initPrisma() {
-  const cfenv=(await getCloudflareContext({async:true})).env;
-  const adapter=new PrismaD1(cfenv.DB)
-  
-  prisma = new PrismaClient({ adapter })
+let dbInstance: ReturnType<typeof drizzle>;
+
+async function initDrizzle() {
+  const cfenv = (await getCloudflareContext({ async: true })).env;
+  dbInstance = drizzle(cfenv.DB);
 }
 let initialized = false;
 let initError: Error | null = null;
@@ -20,7 +20,7 @@ export const db = {
     if (initError) throw initError;
     
     try {
-      await initPrisma();
+      await initDrizzle();
       initialized = true;
     } catch (err) {
       initError = err as Error;
@@ -43,7 +43,7 @@ export const db = {
     await db.ensureInitialized();
     return getProxys(data);
   },
-  initPrisma,
+  
   createProxyUrl: async (data: CreateProxyUrlSchema) => {
     await db.ensureInitialized();
     return createProxyUrl(data);
@@ -62,108 +62,102 @@ export const db = {
   }
 }
 async function createProxy(data:CreateProxySchema){
-  
-  const proxy = await prisma.proxy.create({
-    data: {
-      name: data.name,
-      ip: data.ip,
-      area:data.area,
-      type: data.type,
-      port: data.port,
-      method: data.method,
-      password: data.password
-    }
-  })
-  return proxy
+  await db.ensureInitialized();
+  const result = await dbInstance.insert(proxy).values({
+    name: data.name,
+    ip: data.ip,
+    area: data.area,
+    type: data.type,
+    port: data.port,
+    method: data.method,
+    password: data.password
+  }).returning();
+  return result[0];
 }
 
 async function updateProxy(data:UpdateProxySchema) {
-  const oldProxy = await prisma.proxy.findUnique({
-    where: { id: data.uuid }
-  })
-  if (!oldProxy) {
-    return false
+  await db.ensureInitialized();
+  const oldProxy = await dbInstance.select().from(proxy).where(eq(proxy.id, data.uuid));
+  if (!oldProxy.length) {
+    return false;
   }
-  const proxy = await prisma.proxy.update({
-    where: { id: data.uuid },
-    data: {
+  const result = await dbInstance.update(proxy)
+    .set({
       name: data.name,
       ip: data.ip,
-      area:data.area,
+      area: data.area,
       type: data.type,
       port: data.port,
       method: data.method,
       password: data.password
-    }
-  })
-  return proxy
+    })
+    .where(eq(proxy.id, data.uuid))
+    .returning();
+  return result[0];
 }
 async function deleteProxy(data:DeleteProxySchema) {
-  const oldProxy = await prisma.proxy.findUnique({
-    where: { id: data.uuid }
-  })
-  if (!oldProxy) {
-    return false
+  await db.ensureInitialized();
+  const oldProxy = await dbInstance.select().from(proxy).where(eq(proxy.id, data.uuid));
+  if (!oldProxy.length) {
+    return false;
   }
-  const proxy = await prisma.proxy.delete({
-    where: { id: data.uuid }
-  })
-  return proxy
+  const result = await dbInstance.delete(proxy)
+    .where(eq(proxy.id, data.uuid))
+    .returning();
+  return result[0];
 }
 
 async function getProxys(data:GetProxySchema) {
-  const proxys = await prisma.proxy.findMany({
-    where: { id: data.uuid }
-  })
-  return proxys
+  await db.ensureInitialized();
+  const result = await dbInstance.select()
+    .from(proxy)
+    .where(data.uuid ? eq(proxy.id, data.uuid) : undefined);
+  return result;
 }
 
 async function createProxyUrl(data:CreateProxyUrlSchema){
-  const proxyUrl = await prisma.proxyUrl.create({
-    data: {
-      name: data.name,
-      url: data.url
-    }
-  })
-  return proxyUrl
+  await db.ensureInitialized();
+  const result = await dbInstance.insert(proxyUrl).values({
+    name: data.name,
+    url: data.url
+  }).returning();
+  return result[0];
 }
 
 async function updateProxyUrl(data:UpdateProxyUrlSchema) {
-  const oldProxyUrl = await prisma.proxyUrl.findUnique({
-    where: { uuid: data.uuid }
-  })
-  if (!oldProxyUrl) {
-    return false
+  await db.ensureInitialized();
+  const oldProxyUrl = await dbInstance.select().from(proxyUrl).where(eq(proxyUrl.uuid, data.uuid));
+  if (!oldProxyUrl.length) {
+    return false;
   }
-  const proxyUrl = await prisma.proxyUrl.update({
-    where: { uuid: data.uuid },
-    data: {
+  const result = await dbInstance.update(proxyUrl)
+    .set({
       name: data.name,
       url: data.url
-    }
-  })
-  return proxyUrl
+    })
+    .where(eq(proxyUrl.uuid, data.uuid))
+    .returning();
+  return result[0];
 }
 
 async function deleteProxyUrl(data:DeleteProxyUrlSchema) {
-  const oldProxyUrl = await prisma.proxyUrl.findUnique({
-    where: { uuid: data.uuid }
-  })
-  if (!oldProxyUrl) {
-    return false
+  await db.ensureInitialized();
+  const oldProxyUrl = await dbInstance.select().from(proxyUrl).where(eq(proxyUrl.uuid, data.uuid));
+  if (!oldProxyUrl.length) {
+    return false;
   }
-  const cacheKey=`clash_config_${oldProxyUrl.url}`;
+  const cacheKey=`clash_config_${oldProxyUrl[0].url}`;
   await kv.del(cacheKey);
-  const proxyUrl = await prisma.proxyUrl.delete({
-    where: { uuid: data.uuid }
-  })
-  return proxyUrl
+  const result = await dbInstance.delete(proxyUrl)
+    .where(eq(proxyUrl.uuid, data.uuid))
+    .returning();
+  return result[0];
 }
 
 async function getProxyUrls(data:GetProxyUrlSchema) {
-  
-  const proxyUrls = await prisma.proxyUrl.findMany({
-    where: { uuid: data.uuid }
-  })
-  return proxyUrls
+  await db.ensureInitialized();
+  const result = await dbInstance.select()
+    .from(proxyUrl)
+    .where(data.uuid ? eq(proxyUrl.uuid, data.uuid) : undefined);
+  return result;
 }
