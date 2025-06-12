@@ -1,25 +1,29 @@
-import Redis from "ioredis";
-import { appenv } from "@/appenv";
-const redis=new Redis({
-    host:appenv.redis_host,
-    port:appenv.redis_port,
-    password:appenv.redis_password,
-    db:appenv.redis_db,
-})
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 export const kv={
     get,
     set,
     del,
 }
 
+function initKv() {
+    const cfenv=getCloudflareContext().env;
+    const kv=cfenv.kv;
+    return kv;
+    
+}
+
 async function set(key:string,value:string,expire:number=60*60*24){
-    await redis.set(key,value,'EX',expire)
+    const redis=initKv()
+    await redis.put(key,value,{expirationTtl: expire})
 }
 
 async function get(key:string){
+    const redis=initKv()
     
     return await redis.get(key)
 }
 async function del(key:string){
-    return await redis.del(key)
+    const redis=initKv()
+    return await redis.delete(key)
 }

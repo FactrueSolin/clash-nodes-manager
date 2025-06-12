@@ -6,10 +6,11 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -32,7 +33,7 @@ model Proxy {
 model ProxyUrl {
   uuid        String   @id @default(uuid())
   name      String
-  url      String @db.VarChar(2000)
+  url      String 
   status   Boolean   @default(true)
 
   createdAt DateTime @default(now())
