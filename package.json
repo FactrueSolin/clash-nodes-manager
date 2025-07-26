@@ -2,17 +2,22 @@
 	"name": "clash-url-generator",
 	"version": "0.1.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"dev": "next dev --turbopack",
-		"build": "next build",
-		"start": "next start",
-		"lint": "next lint",
-		"go": "pnpm i && pnpm run db-init && pnpm run build && pnpm run start",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-		"db-init": "npx prisma generate && npx prisma db push"
-	},
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "go": "pnpm i && pnpm run db-init && pnpm run build && pnpm run start",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db-init": "npx prisma generate && npx prisma db push"
+  },
 	"dependencies": {
 		"@opennextjs/cloudflare": "~1.0.0-beta.0 || ^1.0.0",
 		"axios": "^1.9.0",
@@ -32,12 +37,14 @@
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"@vitest/ui": "^3.2.4",
 		"drizzle-kit": "^0.31.1",
 		"eslint": "^9",
 		"eslint-config-next": "15.3.1",
 		"tailwindcss": "^4",
 		"tsx": "^4.19.4",
 		"typescript": "^5",
+		"vitest": "^3.2.4",
 		"wrangler": "^4.14.1"
 	}
 }
