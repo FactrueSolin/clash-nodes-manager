@@ -4,7 +4,13 @@
 import { vi } from 'vitest'
 
 // 模拟环境变量
-process.env.NODE_ENV = 'test'
+// 设置测试环境
+if (!process.env.NODE_ENV) {
+  Object.defineProperty(process.env, 'NODE_ENV', {
+    value: 'test',
+    writable: true
+  });
+}
 
 // 模拟数据库连接
 vi.mock('@/server/db', () => ({

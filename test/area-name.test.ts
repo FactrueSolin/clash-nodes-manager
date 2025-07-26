@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { regionNameMap } from '@/server/area-name'
+import { regionNameMap } from '../app/server/area-name'
 
 describe('area-name 模块测试', () => {
   describe('regionNameMap 地区名称映射测试', () => {
@@ -31,10 +31,10 @@ describe('area-name 模块测试', () => {
     it('应该包含国旗emoji和中文名称', () => {
       Object.values(regionNameMap).forEach(regionName => {
         // 检查是否包含emoji（通过检查是否包含非ASCII字符）
-        expect(/[\u{1F1E6}-\u{1F1FF}]/u.test(regionName)).toBe(true)
+        expect(/[\u{1F1E6}-\u{1F1FF}]/u.test(regionName as string)).toBe(true)
         
-        // 检查是否包含中文字符
-        expect(/[\u4e00-\u9fff]/.test(regionName)).toBe(true)
+        // 验证包含中文字符
+        expect(/[\u4e00-\u9fff]/.test(regionName as string)).toBe(true)
         
         // 检查格式是否为 "🏳️ 地区名称"
         expect(regionName).toMatch(/^[\u{1F1E6}-\u{1F1FF}]{2} .+$/u)

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { regionNameMap } from '@/server/area-name'
+import { describe, it, expect } from 'vitest'
+import { regionNameMap } from '../app/server/area-name'
 
 describe('config 模块测试', () => {
   describe('基础配置测试', () => {

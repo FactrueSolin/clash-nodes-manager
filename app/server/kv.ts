@@ -6,24 +6,23 @@ export const kv={
     del,
 }
 
-function initKv() {
-    const cfenv=getCloudflareContext().env;
-    const kv=cfenv.kv;
+async function initKv() {
+    const cfenv = (await getCloudflareContext({ async: true })).env;
+    const kv = cfenv.kv;
     return kv;
-    
 }
 
-async function set(key:string,value:string,expire:number=60*60*24){
-    const redis=initKv()
-    await redis.put(key,value,{expirationTtl: expire})
+async function set(key:string,value:string,expire:number=60*60*24): Promise<void> {
+    const redis = await initKv();
+    await redis.put(key,value,{expirationTtl: expire});
 }
 
-async function get(key:string){
-    const redis=initKv()
-    
-    return await redis.get(key)
+async function get(key:string): Promise<string | null> {
+    const redis = await initKv();
+    return await redis.get(key);
 }
-async function del(key:string){
-    const redis=initKv()
-    return await redis.delete(key)
+
+async function del(key:string): Promise<void> {
+    const redis = await initKv();
+    await redis.delete(key);
 }

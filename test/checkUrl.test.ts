@@ -86,7 +86,7 @@ describe('checkUrl 模块测试', () => {
       mockKv.get.mockResolvedValue('cached data')
       mockKv.set.mockResolvedValue(undefined)
       
-      const { kv } = await import('@/server/kv')
+      const { kv } = await import('../app/server/kv')
       
       const result = await kv.get('test-key')
       expect(result).toBe('cached data')
@@ -99,7 +99,7 @@ describe('checkUrl 模块测试', () => {
       const mockUrls = [{ url: 'http://test.com', name: '测试源' }]
       mockDb.getProxyUrls.mockResolvedValue(mockUrls)
       
-      const { db } = await import('@/server/db')
+      const { db } = await import('../app/server/db')
       const result = await db.getProxyUrls({})
       
       expect(result).toEqual(mockUrls)
